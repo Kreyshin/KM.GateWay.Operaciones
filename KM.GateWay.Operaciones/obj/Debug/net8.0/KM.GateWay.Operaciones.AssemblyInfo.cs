@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("KM.GateWay.Operaciones")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1ea20a9e916398d0ec751a459ebe4e20bbf8629b")]
 [assembly: System.Reflection.AssemblyProductAttribute("KM.GateWay.Operaciones")]
 [assembly: System.Reflection.AssemblyTitleAttribute("KM.GateWay.Operaciones")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

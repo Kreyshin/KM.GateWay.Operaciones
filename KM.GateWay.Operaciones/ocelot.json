@@ -2,15 +2,16 @@
   "Routes": [
     {
       "DownstreamPathTemplate": "/v1/GestionInventarios/{everything}",
-      "DownstreamScheme": "https",
+      "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
-          "Host": "localhost",
-          "Port": 7003
+          //"Host": "km-gi-api",
+          "Host": "host.docker.internal",
+          "Port": 8001
         }
       ],
       "UpstreamPathTemplate": "/api/GestionInventarios/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE", "OPTIONS" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []

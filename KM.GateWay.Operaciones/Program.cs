@@ -4,9 +4,39 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
+using Serilog;
+using Serilog.Sinks.Grafana.Loki;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console()
+    .WriteTo.GrafanaLoki(
+        Environment.GetEnvironmentVariable("LOKI_URL") ?? "http://localhost:3100",
+        labels: new List<LokiLabel>
+        {
+            new() { Key = "app", Value = "km-gateway-operaciones" },
+            new() { Key = "env", Value = builder.Environment.EnvironmentName.ToLower() },
+        }
+    )
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
+    });
+});
 
 builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
 
@@ -41,6 +71,10 @@ builder.Services.AddOcelot();
 var app = builder.Build();
 
 // Habilitar autenticación en el API Gateway
+app.UseDefaultFiles();
+app.UseStaticFiles();
+app.UseSerilogRequestLogging();
+app.UseCors("CorsPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 

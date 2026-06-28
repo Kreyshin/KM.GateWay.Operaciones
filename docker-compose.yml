@@ -1,0 +1,27 @@
+name: km-operaciones-gateway
+
+networks:
+  observability:
+    external: true
+    name: observability-network
+  karma:
+    external: true
+    name: karma-network
+
+services:
+  apigateway:
+    image: km-gate:latest
+    container_name: KM.GateWay.Operaciones
+    build:
+      context: .
+      dockerfile: KM.GateWay.Operaciones/Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - observability
+      - karma
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8000
+      - LOKI_URL=http://loki:3100
+    restart: unless-stopped

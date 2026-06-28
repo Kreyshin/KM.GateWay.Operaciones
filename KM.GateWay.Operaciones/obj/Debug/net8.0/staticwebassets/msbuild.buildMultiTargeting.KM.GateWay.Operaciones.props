@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\build\KM.GateWay.Operaciones.props" />
-</Project>

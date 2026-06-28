@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KM Gateway Operaciones — Karma Corp</title>
+    <style>
+        :root {
+            --black-deep: #080810;
+            --black-mid: #0f0f1a;
+            --card-bg: rgba(255,255,255,0.035);
+            --card-border: rgba(255,255,255,0.07);
+            --purple-deep: #6a0dad;
+            --purple-glow: #9b30ff;
+            --blue-cosmic: #1a237e;
+            --blue-mid: #3949ab;
+            --blue-glow: #5c6bc0;
+            --text-primary: #f0f0ff;
+            --text-secondary: #8888aa;
+            --text-muted: #555577;
+            --green: #00e676;
+            --green-dim: rgba(0,230,118,0.12);
+            --yellow: #ffd740;
+            --red: #ff5252;
+            --accent: #7c4dff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--black-deep);
+            color: var(--text-primary);
+            font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ── Background ── */
+        .bg-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.12;
+            animation: drift 20s ease-in-out infinite alternate;
+        }
+        .orb-1 { background: var(--purple-deep); width: 700px; height: 700px; top: -200px; left: -200px; animation-delay: 0s; }
+        .orb-2 { background: var(--blue-cosmic); width: 500px; height: 500px; bottom: -150px; right: -100px; animation-delay: -7s; }
+        .orb-3 { background: var(--accent); width: 300px; height: 300px; top: 40%; left: 50%; animation-delay: -14s; opacity: 0.06; }
+
+        @keyframes drift {
+            from { transform: translate(0, 0) scale(1); }
+            to   { transform: translate(40px, 30px) scale(1.08); }
+        }
+
+        /* Grid lines */
+        .grid-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+        }
+
+        /* ── Layout ── */
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 32px 24px 60px;
+        }
+
+        /* ── Header ── */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+        .logo-block { display: flex; align-items: center; gap: 16px; }
+        .logo-icon {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, var(--purple-glow), var(--blue-glow));
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 0 24px rgba(124,77,255,0.35);
+        }
+        .logo-text .company { font-size: 12px; font-weight: 600; letter-spacing: 3px; color: var(--text-secondary); text-transform: uppercase; }
+        .logo-text .service { font-size: 20px; font-weight: 700; letter-spacing: 0.5px; color: var(--text-primary); }
+
+        .header-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+            border: 1px solid;
+        }
+        .badge-green  { background: var(--green-dim);             border-color: rgba(0,230,118,0.3); color: var(--green); }
+        .badge-purple { background: rgba(124,77,255,0.12);        border-color: rgba(124,77,255,0.35); color: #b388ff; }
+        .badge-blue   { background: rgba(92,107,192,0.12);        border-color: rgba(92,107,192,0.35); color: #82b1ff; }
+        .badge-yellow { background: rgba(255,215,64,0.1);         border-color: rgba(255,215,64,0.3); color: var(--yellow); }
+
+        .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; animation: pulse-dot 2s ease-in-out infinite; }
+        .dot-green  { background: var(--green); box-shadow: 0 0 6px var(--green); }
+        @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+        .clock { font-family: "Courier New", monospace; font-size: 12px; color: var(--text-muted); }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+        .card:hover {
+            border-color: rgba(124,77,255,0.22);
+            box-shadow: 0 4px 40px rgba(124,77,255,0.1);
+        }
+        .card-header {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 18px;
+        }
+        .card-icon {
+            font-size: 18px;
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(124,77,255,0.12);
+            border: 1px solid rgba(124,77,255,0.2);
+        }
+        .card-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.5px; text-transform: uppercase; }
+
+        /* ── Stats Row ── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            backdrop-filter: blur(12px);
+        }
+        .stat-value { font-size: 32px; font-weight: 700; line-height: 1; margin-bottom: 6px; }
+        .stat-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); letter-spacing: 0.8px; text-transform: uppercase; }
+        .stat-v-purple { color: var(--purple-glow); }
+        .stat-v-green  { color: var(--green); }
+        .stat-v-blue   { color: var(--blue-glow); }
+        .stat-v-yellow { color: var(--yellow); }
+
+        /* ── Main Grid ── */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 880px) { .main-grid { grid-template-columns: 1fr; } }
+
+        /* ── Routes Table ── */
+        .route-list { display: flex; flex-direction: column; gap: 10px; }
+        .route-item {
+            background: rgba(255,255,255,0.025);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px 18px;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 14px;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .route-item:hover { background: rgba(124,77,255,0.06); border-color: rgba(124,77,255,0.2); }
+
+        .route-method-list { display: flex; gap: 4px; flex-wrap: wrap; }
+        .method-chip {
+            font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+            padding: 2px 7px; border-radius: 4px; border: 1px solid;
+        }
+        .m-get    { color: #69f0ae; border-color: rgba(105,240,174,0.3); background: rgba(105,240,174,0.08); }
+        .m-post   { color: #82b1ff; border-color: rgba(130,177,255,0.3); background: rgba(130,177,255,0.08); }
+        .m-put    { color: #ffd740; border-color: rgba(255,215,64,0.3);  background: rgba(255,215,64,0.08); }
+        .m-delete { color: #ff5252; border-color: rgba(255,82,82,0.3);   background: rgba(255,82,82,0.08); }
+        .m-opt    { color: #b388ff; border-color: rgba(179,136,255,0.3); background: rgba(179,136,255,0.08); }
+
+        .route-paths { }
+        .route-upstream { font-size: 13px; font-weight: 600; color: var(--text-primary); font-family: "Courier New", monospace; margin-bottom: 4px; }
+        .route-downstream { font-size: 11px; color: var(--text-secondary); font-family: "Courier New", monospace; }
+        .route-arrow { color: var(--text-muted); }
+
+        .route-target {
+            text-align: right;
+        }
+        .route-host { font-size: 12px; font-family: "Courier New", monospace; color: var(--blue-glow); }
+        .route-auth-chip {
+            display: inline-flex; align-items: center; gap: 4px;
+            font-size: 10px; font-weight: 600;
+            padding: 2px 8px; border-radius: 4px; margin-top: 5px;
+            background: rgba(0,230,118,0.1); border: 1px solid rgba(0,230,118,0.25); color: var(--green);
+        }
+
+        /* ── Side Panel ── */
+        .side-stack { display: flex; flex-direction: column; gap: 20px; }
+
+        /* JWT Info */
+        .info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--card-border); gap: 10px; }
+        .info-row:last-child { border-bottom: none; padding-bottom: 0; }
+        .info-key { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        .info-val { font-size: 12px; color: var(--text-primary); font-family: "Courier New", monospace; text-align: right; word-break: break-all; }
+
+        /* Environment */
+        .env-list { display: flex; flex-direction: column; gap: 8px; }
+        .env-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; }
+        .env-key { color: var(--text-muted); }
+        .env-val { font-family: "Courier New", monospace; color: var(--text-secondary); }
+        .env-val.green { color: var(--green); }
+        .env-val.purple { color: #b388ff; }
+
+        /* Divider line on card */
+        .divider { border: none; border-top: 1px solid var(--card-border); margin: 14px 0; }
+
+        /* ── Footer ── */
+        .footer {
+            margin-top: 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding-top: 20px;
+            border-top: 1px solid var(--card-border);
+        }
+        .footer-text { font-size: 11px; color: var(--text-muted); }
+        .footer-brand { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; }
+
+        /* ── Glow Separator ── */
+        .glow-line {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--purple-glow), var(--blue-glow), transparent);
+            opacity: 0.3;
+            margin: 8px 0 32px;
+            border: none;
+        }
+
+        /* Pipeline visual */
+        .pipeline {
+            display: flex; align-items: center; gap: 0;
+            font-size: 11px; margin-top: 12px;
+            flex-wrap: wrap; gap: 6px;
+        }
+        .pipe-node {
+            display: flex; align-items: center; gap: 6px;
+            padding: 6px 12px; border-radius: 8px; border: 1px solid var(--card-border);
+            background: rgba(255,255,255,0.025); font-size: 11px; font-weight: 600;
+            white-space: nowrap;
+        }
+        .pipe-node.active { border-color: rgba(0,230,118,0.3); background: var(--green-dim); color: var(--green); }
+        .pipe-node.accent { border-color: rgba(124,77,255,0.3); background: rgba(124,77,255,0.1); color: #b388ff; }
+        .pipe-node.blue   { border-color: rgba(92,107,192,0.3); background: rgba(92,107,192,0.1); color: #82b1ff; }
+        .pipe-arrow { color: var(--text-muted); font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div class="bg-canvas">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+</div>
+<div class="grid-overlay"></div>
+
+<div class="page">
+
+    <!-- ── Header ── -->
+    <header class="header">
+        <div class="logo-block">
+            <div class="logo-icon">⬡</div>
+            <div class="logo-text">
+                <div class="company">Karma Corp</div>
+                <div class="service">Gateway Operaciones</div>
+            </div>
+        </div>
+        <div class="header-meta">
+            <span class="badge badge-green"><span class="dot dot-green"></span>ONLINE</span>
+            <span class="badge badge-purple">Ocelot 23.x</span>
+            <span class="badge badge-blue">.NET 8</span>
+            <span class="badge badge-yellow">JWT Bearer</span>
+            <span class="clock" id="clock">--:--:--</span>
+        </div>
+    </header>
+
+    <hr class="glow-line">
+
+    <!-- ── Stats ── -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value stat-v-purple">1</div>
+            <div class="stat-label">Rutas Activas</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value stat-v-green">1</div>
+            <div class="stat-label">Servicios</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value stat-v-blue">5</div>
+            <div class="stat-label">Métodos HTTP</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value stat-v-yellow">JWT</div>
+            <div class="stat-label">Autenticación</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value stat-v-blue">8001</div>
+            <div class="stat-label">Puerto Downstream</div>
+        </div>
+    </div>
+
+    <!-- ── Main Grid ── -->
+    <div class="main-grid">
+
+        <!-- Rutas -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">⇄</div>
+                <span class="card-title">Rutas Configuradas</span>
+            </div>
+
+            <div class="route-list">
+
+                <div class="route-item">
+                    <div>
+                        <div class="route-method-list">
+                            <span class="method-chip m-get">GET</span>
+                            <span class="method-chip m-post">POST</span>
+                            <span class="method-chip m-put">PUT</span>
+                            <span class="method-chip m-delete">DEL</span>
+                            <span class="method-chip m-opt">OPT</span>
+                        </div>
+                    </div>
+                    <div class="route-paths">
+                        <div class="route-upstream">/api/GestionInventarios/{everything}</div>
+                        <div class="route-downstream">→ /v1/GestionInventarios/{everything}</div>
+                        <div style="margin-top:8px;">
+                            <span class="route-auth-chip">🔐 Auth: Bearer</span>
+                        </div>
+                    </div>
+                    <div class="route-target">
+                        <div class="route-host">km-gi-api</div>
+                        <div class="route-host">:8001</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Pipeline visual -->
+            <div class="pipeline" style="margin-top:20px;">
+                <div class="pipe-node blue">🌐 Cliente</div>
+                <span class="pipe-arrow">→</span>
+                <div class="pipe-node accent">🔐 JWT Validation</div>
+                <span class="pipe-arrow">→</span>
+                <div class="pipe-node accent">⬡ Ocelot Gateway</div>
+                <span class="pipe-arrow">→</span>
+                <div class="pipe-node active">km-gi-api:8001</div>
+            </div>
+        </div>
+
+        <!-- Side Panel -->
+        <div class="side-stack">
+
+            <!-- JWT Info -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">🔐</div>
+                    <span class="card-title">JWT Config</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-key">Issuer</span>
+                    <span class="info-val">localhost:7001</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-key">Audiences</span>
+                    <span class="info-val">:9001, :9002</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-key">Algoritmo</span>
+                    <span class="info-val">HS256</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-key">Lifetime</span>
+                    <span class="info-val">Validado ✓</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-key">Scheme</span>
+                    <span class="info-val">Bearer</span>
+                </div>
+            </div>
+
+            <!-- Environment -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">⚙</div>
+                    <span class="card-title">Entorno</span>
+                </div>
+                <div class="env-list">
+                    <div class="env-row">
+                        <span class="env-key">Runtime</span>
+                        <span class="env-val purple">.NET 8</span>
+                    </div>
+                    <div class="env-row">
+                        <span class="env-key">Gateway</span>
+                        <span class="env-val purple">Ocelot</span>
+                    </div>
+                    <div class="env-row">
+                        <span class="env-key">Logs</span>
+                        <span class="env-val purple">Serilog + Loki</span>
+                    </div>
+                    <div class="env-row">
+                        <span class="env-key">CORS</span>
+                        <span class="env-val green">Habilitado</span>
+                    </div>
+                    <div class="env-row">
+                        <span class="env-key">CORS Origin</span>
+                        <span class="env-val">localhost:4200</span>
+                    </div>
+                    <div class="env-row">
+                        <span class="env-key">Status</span>
+                        <span class="env-val green">● Operacional</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── CORS / Observability ── -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">🌍</div>
+                <span class="card-title">CORS Policy</span>
+            </div>
+            <div class="env-list">
+                <div class="env-row">
+                    <span class="env-key">Policy Name</span>
+                    <span class="env-val purple">CorsPolicy</span>
+                </div>
+                <div class="env-row">
+                    <span class="env-key">Origin</span>
+                    <span class="env-val">localhost:4200</span>
+                </div>
+                <div class="env-row">
+                    <span class="env-key">Headers</span>
+                    <span class="env-val green">Any</span>
+                </div>
+                <div class="env-row">
+                    <span class="env-key">Methods</span>
+                    <span class="env-val green">Any</span>
+                </div>
+                <div class="env-row">
+                    <span class="env-key">Credentials</span>
+                    <span class="env-val green">Permitidas ✓</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">📊</div>
+                <span class="card-title">Observabilidad</span>
+            </div>
+            <div class="env-list">
+                <div class="env-row">
+                    <span class="env-key">Logger</span>
+                    <span class="env-val purple">Serilog</span>
+                </div>
+                <div class="env-row">
+                    <span class="env-key">Sink</span>
+                    <span class="env-val purple">Grafana Loki</span>
+                </div>
+                <div class="env-row">
+                    <span class="env-key">App Label</span>
+                    <span class="env-val">km-gateway-operaciones</span>
+                </div>
+                <div class="env-row">
+                    <span class="env-key">Loki URL</span>
+                    <span class="env-val">$LOKI_URL / :3100</span>
+                </div>
+                <div class="env-row">
+                    <span class="env-key">Request Logs</span>
+                    <span class="env-val green">Habilitado ✓</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ── Footer ── -->
+    <footer class="footer">
+        <span class="footer-text">KM.GateWay.Operaciones — API Gateway de enrutamiento y autenticación</span>
+        <span class="footer-brand">Karma Corp</span>
+    </footer>
+
+</div>
+
+<script>
+    function updateClock() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2,'0');
+        const m = String(now.getMinutes()).padStart(2,'0');
+        const s = String(now.getSeconds()).padStart(2,'0');
+        document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+</script>
+
+</body>
+</html>
